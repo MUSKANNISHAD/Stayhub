@@ -29,6 +29,7 @@ import listingsRoutes from "./routes/listings.js";
 import reviews from './routes/reviews.js';
 import userRoutes from "./routes/user.js";
 
+const PORT = process.env.PORT || 8080;
 
 import { cloudinary } from "./cloudConfigure.js";
 
@@ -77,14 +78,16 @@ app.engine("ejs", ejsMate);
 app.use(express.static('public'));
 app.use(express.static(path.join(__dirname, "/public")));
 
+app.set("trust proxy", 1);
+
 const store = MongoStore.create({
   mongoUrl: process.env.ATLAS_KEY,
   crypto: {
     secret: process.env.SECRET
   },
-  touchafter: 24 * 60 * 60,
+  touchAfter: 24 * 60 * 60,
 })
-store.on("error", () => {
+store.on("error", (err) => {
   console.log("error in session store", err);
 })
 
@@ -97,6 +100,8 @@ const sessionOption = {
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
+    sameSite: "lax",
+    secure: false,
   }
 }
 app.get("/", (req, res) => {
@@ -148,6 +153,6 @@ app.use("/", userRoutes);
 
 
 
-app.listen(8080, () => {
-  console.log("server is listening on port 8080");
+app.listen(PORT, () => {
+  console.log(`server is listening on port ${PORT}`);
 });
